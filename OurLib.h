@@ -51,6 +51,8 @@ struct HashGramsOfFile
     map<string, int> NGrams_List; // List 1-grmas, List 2-grams, List 3-grams
 };
 
+
+int mymin(int a, int b);
 //
 void _parse_argument_main(int argc, char* argv[], string &folderName, string& ctdl, int &n, int &m, int &k);
 
@@ -86,4 +88,20 @@ DoSoKhop _compare_two_file(const HashGramsOfFile& file1, HashGramsOfFile &file2)
 void _compare_all_file(vector<HashGramsOfFile>& folderList, vector<DoSoKhop>& result);
 
 // map_from_scratch
+#define M_TABLE 65536
+struct Table
+{
+    int size;
+    string tenFile;
+    vector<ngrams> NGrams_List[M_TABLE]; // List 1-grmas, List 2-grams, List 3-grams 
+};
+void _initTable(Table& t, string tenFile);
+unsigned long _hashing(string str);
+void _insertTable(Table& table, const string& data);
+bool _getTable(const Table& table, string key, ngrams& result);
 
+void _get_ngrams_from_line(const string& line, Table& hTable, vector<string> gramsQueue[], int n, int m);
+void _get_ngrams_from_file(const string& dir, Table& hTable, int n, int m);
+void _get_ngrams_from_folder(const string& dir, string ctdl, int n, int m, vector<Table>& folderList);
+DoSoKhop _compare_two_file(const Table& file1, Table &file2);
+void _compare_all_file(vector<Table>& folderList, vector<DoSoKhop>& result);

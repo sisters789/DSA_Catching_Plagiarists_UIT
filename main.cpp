@@ -21,14 +21,40 @@ int main(int argc, char* argv[])
     vector<BSTGramsOfFile> folderListBST;
     vector<ListNGramsOfFile> folderListVector;
     vector<HashGramsOfFile> folderListMap;
+    vector<Table> folderListTable;
     
+    // test map_from_scratch
+    // HashGramsOfFile x1,x2;
+    // //_initTable(t, "");
+    // x1.tenFile = "test_map.txt";
+    // _get_ngrams_from_file("test_map.txt", x1.NGrams_List, 1,3);
+    
+    // _get_ngrams_from_file("test2.txt", x2.NGrams_List, 1,3);
+    // cout << "test_map:\n";
+    // for (auto i:x1.NGrams_List)
+    // {
+    //     cout << i.first << ": " << i.second << "\n";
+    // }
+    // cout << "test2:\n";
+    // for (auto i:x2.NGrams_List)
+    // {
+    //     cout << i.first << ": " << i.second << "\n";
+    // }
+
+
+    // DoSoKhop a = _compare_two_file(x1,x2);
+    // cout << "result: " << a.n << endl;
+    // return 0;
+
+
     ////////////////////////////////////////////////////////////////////////////////////
     n=1; m=3;
-    dir = "D:\\Workspace\\VisualCode\\CTDL\\ASSIGNMENT\\sm_doc_set\\*.txt";
+    dir = "D:\\Workspace\\VisualCode\\CTDL\\ASSIGNMENT\\error\\*.txt";
+    ctdl="map_from_scratch";
     // cout << "dir: " << dir << endl;
     //dir = argv[2];
     
-    _parse_argument_main(argc, argv, dir, ctdl, n, m, k);
+    //_parse_argument_main(argc, argv, dir, ctdl, n, m, k);
     // cout << argv[2] << "\n";
     // cout << dir << "\n" << ctdl << "\n" << n << " " << m << " " << k << "\n";
     if (ctdl=="bst")
@@ -46,13 +72,18 @@ int main(int argc, char* argv[])
         _get_ngrams_from_folder(dir, "", n, m, folderListMap);  
         _compare_all_file(folderListMap, result);
     }
+    else if (ctdl=="map_from_scratch")
+    {
+        _get_ngrams_from_folder(dir, "", n, m, folderListTable);
+        _compare_all_file(folderListTable, result);
+        
+    }
+    else return 0;
     
     // for (int i=0; i< folderList.size();i++)
     // {
     //     cout << folderList[i].tenFile << "\n";
     // }
-
-    
 
     sort(result.begin(), result.end(), compare);
     /////////////////////////////////////////////////////////////////////////////////////

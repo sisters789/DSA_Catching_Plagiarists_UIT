@@ -1,5 +1,8 @@
 #include "OurLib.h"
-
+int mymin(int a, int b)
+{
+    return (a<b)? a:b;
+}
 void _parse_argument_main(int argc, char* argv[], string &folderName, string& ctdl, int &n, int &m, int &k)
 {
     for(int i=0; i<argc-1; i++)
@@ -363,6 +366,7 @@ node* _search(const Tree& tree, const string& key)
         return tree;
     }
 }
+
 void _get_ngrams_from_line(const string& line, vector<Tree*> &NGramsList, vector<string> gramsQueue[], int n, int m)
 {
     char * str = new char[line.size()+1];
@@ -625,6 +629,7 @@ void _get_ngrams_from_folder(const string& dir, string ctdl, int n, int m, vecto
     while (_findnext(handle, &fileinfo) == 0) {
         //cout << fileinfo.name << endl;
         fileDir = src;
+        HashGramsOfFile temp;
         temp.tenFile = fileinfo.name;
         cout << "Dang xu ly file " << temp.tenFile << "\n";
         
@@ -647,10 +652,9 @@ DoSoKhop _compare_two_file(const HashGramsOfFile& file1, HashGramsOfFile &file2)
     for(auto i:file1.NGrams_List)
     {
         ngram = i.first;
-        
         freq1 = i.second;
         freq2 = file2.NGrams_List[ngram];
-        res.n += (freq1<(freq2))? freq1 : freq2;
+        res.n += ((freq1<freq2)? freq1 : freq2);
     }
     //cout << "\n";
     
@@ -675,5 +679,207 @@ void _compare_all_file(vector<HashGramsOfFile>& folderList, vector<DoSoKhop>& re
 // map_from_scratch
 //////////////////////////////////////////////////////////////////////////////////////////
 
+void _initTable(Table& t, string tenFile)
+{
+    t.size=0;
+    t.tenFile = tenFile;
+}
+unsigned long _hashing(string str)
+{
+    unsigned long hash = 5381;
+    int c;
+    for (int i=0; i<str.size(); i++)
+    {
+        c=str[i];
+        hash = (hash<<5 + hash) + c;
+    }
+
+    return hash%M_TABLE;
+}
+void _insertCell(vector<ngrams> &cell, const string &data)
+{
+    int i;
+    for (i=0;i<cell.size();i++)
+    {
+        if (cell[i].n_gram==data)
+        {
+            cell[i].TanSo++;
+            return;
+        }
+    }
+    
+    ngrams temp;
+    temp.n_gram = data;
+    temp.TanSo = 1;
+    cell.push_back(temp);
+}
+void _insertTable(Table& table, const string& data)
+{
+    unsigned long index = _hashing(data);
+    if (table.NGrams_List[index].size()==0)
+    {
+        table.size++;
+    }
+    _insertCell(table.NGrams_List[index], data);
+}
+
+bool _getTable(const Table& table, string key, ngrams& result)
+{
+    unsigned long index = _hashing(key);
+    int i;
+    for (i=0; i<table.NGrams_List[index].size(); i++)
+    {
+        if (key == table.NGrams_List[index][i].n_gram)
+        {
+            result = table.NGrams_List[index][i];
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void _get_ngrams_from_line(const string& line, Table& hTable, vector<string> gramsQueue[], int n, int m)
+{
+    char * str = new char[line.size()+1];
+    strcpy(str, line.c_str());
+    string t_word;
+    string t_gram;
+    ngrams temp;
+    int i;
+    // " .,:;`'/\\+-(){}[]<>*&^%$#@!?~|_=0123456789\t\n\""
+    char* word = strtok(str, " .,:;`'/+-(){}[]<>*&^%$#@!?~/\\= \r\t\n1234567890");
+    while(word!=NULL)
+    {
+        i = 0;
+        while(word[i]!='\0')
+        {
+            if (word[i] >= 'A' && word[i] <= 'Z')
+                word[i] +=32;
+            i++;
+        }
+        //
+        t_word = word;
+        for (int numberOfGram=n; numberOfGram<=m; numberOfGram++)
+        {
+            gramsQueue[numberOfGram-1].push_back(t_word);
+            if (gramsQueue[numberOfGram-1].size()==numberOfGram)
+            {
+                t_gram = "";
+                for (int k=0;k<numberOfGram;k++)
+                {
+                    t_gram.append((gramsQueue[numberOfGram-1])[k]);
+                    if (k != numberOfGram - 1)
+                        t_gram += " ";
+                }
+                
+                //int pos = _search(*NGramsList[numberOfGram-1], t_gram);
+                _insertTable(hTable, t_gram);
+                
+                
+                gramsQueue[numberOfGram-1].erase(gramsQueue[numberOfGram-1].begin());
+            }
+        }
+        word = strtok(NULL, " .,:;`'/+-(){}[]<>*&^%$#@!?~/\\= \r\t\n1234567890");
+    }
+    delete[]str;
+}
+void _get_ngrams_from_file(const string& dir, Table& hTable, int n, int m)
+{
+    vector<string> gramsQueue[N_MAX];
+    //cout << "dir in ngrams from file: " << dir << endl;
+    ifstream file;
+    string line = "";
+    file.open(dir, ios::in);
+    while(!file.eof())
+    {
+        getline(file, line);
+        cout << "line: " << line << "\n";
+        _get_ngrams_from_line(line, hTable, gramsQueue, n, m);
+    }
+    file.close();
+}
+void _get_ngrams_from_folder(const string& dir, string ctdl, int n, int m, vector<Table>& folderList)
+{
+    string fileDir = dir;
+    string t_dir;
+    //fileDir.erase(fileDir. find_first_of("*"));
+    fileDir.erase(fileDir.find_last_of("\\")+1);
+    //cout << "fileDir" << fileDir << "\n";
+    string src= fileDir;
+    t_dir = src+"*.txt";
+    //cout << "t_dir: " << t_dir.c_str() << endl;
+    intptr_t handle;
+    struct _finddata_t fileinfo;
+    handle = _findfirst(t_dir.c_str(), &fileinfo);
+    if (handle == -1) {
+        cout << strerror(errno);
+        exit(1);
+    }
+    
+    //cout << fileinfo.name << endl;
+    Table temp;
+    _initTable(temp, fileinfo.name);
+    cout << "Dang xu ly file " << temp.tenFile << "\n";
+    
+    //cout << "fileDir: " << fileDir + temp.tenFile << endl;
+    _get_ngrams_from_file(fileDir.append(fileinfo.name), temp, n, m);
+    folderList.push_back(temp);
+    while (_findnext(handle, &fileinfo) == 0) {
+        //cout << fileinfo.name << endl;
+        fileDir = src;
+        Table temp;
+        _initTable(temp, fileinfo.name);
+        //temp.tenFile = fileinfo.name;
+        cout << "Dang xu ly file " << temp.tenFile << "\n";
+        
+        _get_ngrams_from_file(fileDir.append(fileinfo.name), temp, n, m);
+        folderList.push_back(temp);
+    }
+
+    _findclose(handle);
+}
+
+DoSoKhop _compare_two_file(const Table& file1, Table &file2)
+{
+    DoSoKhop res;
+    int freq1, freq2, i, j; 
+    ngrams ngram1, ngram2;
+    bool ret=0;
+    const vector<ngrams>* cell;
+    res.file1 = file1.tenFile;
+    res.file2 = file2.tenFile;
+    res.n = 0;
+
+    for (i=0; i<file1.size; i++)
+    {
+        cell = &file1.NGrams_List[i];
+        for (j=0;j<cell->size();j++)
+        {
+            ngram1 = (*cell)[j];
+            if (_getTable(file2, ngram1.n_gram, ngram2)==1)
+            {
+                res.n += mymin(ngram1.TanSo, ngram2.TanSo);
+            }
+        }
+    }
+    //cout << "\n";
+    
+    return res;
+}
+
+void _compare_all_file(vector<Table>& folderList, vector<DoSoKhop>& result)
+{
+    DoSoKhop temp;
+    for (int i=0; i<folderList.size()-1; i++)
+    {
+        for (int j=i+1; j<folderList.size(); j++)
+        {
+            cout << "So sanh: " << folderList[i].tenFile << " " << folderList[j].tenFile << "\n";
+            temp = _compare_two_file(folderList[i], folderList[j]);
+            result.push_back(temp);
+        }
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
