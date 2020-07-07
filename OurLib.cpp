@@ -27,7 +27,8 @@ void _parse_argument_main(int argc, char* argv[], string &folderName, string& ct
                 k=-1;
             else
             {
-                k = argv[i+1][0] - '0';
+                //k = argv[i+1][0] - '0';
+				k = atoi(argv[i+1]);
             }
             
         }
@@ -794,7 +795,7 @@ void _get_ngrams_from_file(const string& dir, Table& hTable, int n, int m)
     while(!file.eof())
     {
         getline(file, line);
-        cout << "line: " << line << "\n";
+        //cout << "line: " << line << "\n";
         _get_ngrams_from_line(line, hTable, gramsQueue, n, m);
     }
     file.close();
@@ -846,22 +847,30 @@ DoSoKhop _compare_two_file(const Table& file1, Table &file2)
     int freq1, freq2, i, j; 
     ngrams ngram1, ngram2;
     bool ret=0;
+	int dem=0;
     const vector<ngrams>* cell;
     res.file1 = file1.tenFile;
     res.file2 = file2.tenFile;
     res.n = 0;
 
-    for (i=0; i<file1.size; i++)
+    for (i=0; i<M_TABLE;i++)
     {
+		
         cell = &file1.NGrams_List[i];
-        for (j=0;j<cell->size();j++)
-        {
-            ngram1 = (*cell)[j];
-            if (_getTable(file2, ngram1.n_gram, ngram2)==1)
-            {
-                res.n += mymin(ngram1.TanSo, ngram2.TanSo);
-            }
-        }
+		if (cell->size() != 0)
+		{
+			for (j=0;j<cell->size();j++)
+			{
+				ngram1 = (*cell)[j];
+				if (_getTable(file2, ngram1.n_gram, ngram2)==1)
+				{
+					res.n += mymin(ngram1.TanSo, ngram2.TanSo);
+				}
+			}
+			dem++;
+			if (dem==file1.size)
+				break;
+		}
     }
     //cout << "\n";
     

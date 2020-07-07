@@ -88,7 +88,7 @@ DoSoKhop _compare_two_file(const HashGramsOfFile& file1, HashGramsOfFile &file2)
 void _compare_all_file(vector<HashGramsOfFile>& folderList, vector<DoSoKhop>& result);
 
 // map_from_scratch
-#define M_TABLE 65536
+#define M_TABLE 32768
 struct Table
 {
     int size;

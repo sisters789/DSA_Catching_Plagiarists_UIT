@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
     // cout << "dir: " << dir << endl;
     //dir = argv[2];
     
-    //_parse_argument_main(argc, argv, dir, ctdl, n, m, k);
+    _parse_argument_main(argc, argv, dir, ctdl, n, m, k);
     // cout << argv[2] << "\n";
     // cout << dir << "\n" << ctdl << "\n" << n << " " << m << " " << k << "\n";
     if (ctdl=="bst")
